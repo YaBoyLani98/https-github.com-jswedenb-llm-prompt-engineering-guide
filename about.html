@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DVD Weather Text Animation</title>
+
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background-color: black;
+    height: 100vh;
+    font-family: ui-monospace;
+  }
+
+  /* Brand link in top-left corner with Arial font */
+  .brand-link {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    font-size: 22px;
+    color: #00ffcc;
+    text-decoration: none;
+    font-weight: bold;
+    letter-spacing: 1px;
+    z-index: 1000;
+    font-family: Arial, sans-serif;
+  }
+
+  .brand-link:hover {
+    color: white;
+  }
+
+  /* Moving DVD text */
+  #dvdText {
+    position: absolute;
+    color: white;
+    font-size: 50px;
+    white-space: nowrap;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  /* Weather icons */
+  .weather-icon {
+    position: absolute;
+    font-size: 64px;
+    user-select: none;
+    pointer-events: none;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- Top-left clickable brand -->
+<a href="index.html" class="brand-link">WeatherNature</a>
+
+<!-- Animated DVD text -->
+<div id="dvdText">
+  ABOUT US: <br><br>
+  Grad-Student project to provide<br>
+  Real-Time AI Weather <br>
+  Information for the public<br>
+  with an AI prompt to answer<br>
+  any weather-related questions<br>
+  for any location in the world
+</div>
+
+<!-- Weather icons -->
+<div class="weather-icon">☀️</div>
+<div class="weather-icon">☁️</div>
+<div class="weather-icon">🌧️</div>
+<div class="weather-icon">💨</div>
+
+<script>
+const text = document.getElementById('dvdText');
+
+let textX = Math.random() * (window.innerWidth - text.offsetWidth);
+let textY = Math.random() * (window.innerHeight - text.offsetHeight);
+let textDX = 2;
+let textDY = 2;
+
+function animateText() {
+  textX += textDX;
+  textY += textDY;
+
+  if (textX <= 0 || textX + text.offsetWidth >= window.innerWidth) textDX *= -1;
+  if (textY <= 0 || textY + text.offsetHeight >= window.innerHeight) textDY *= -1;
+
+  text.style.left = textX + 'px';
+  text.style.top = textY + 'px';
+
+  requestAnimationFrame(animateText);
+}
+
+animateText();
+
+// Collision detection
+function isColliding(a, b) {
+  return !(
+    a.x + a.width < b.x ||
+    a.x > b.x + b.width ||
+    a.y + a.height < b.y ||
+    a.y > b.y + b.height
+  );
+}
+
+// DVD Icon class with proper deflection
+class DVDIcon {
+  constructor(el, dx, dy) {
+    this.el = el;
+    this.x = Math.random() * (window.innerWidth - el.offsetWidth);
+    this.y = Math.random() * (window.innerHeight - el.offsetHeight);
+    this.dx = dx;
+    this.dy = dy;
+  }
+
+  move() {
+    this.x += this.dx;
+    this.y += this.dy;
+
+    // Wall bounce
+    if (this.x <= 0 || this.x + this.el.offsetWidth >= window.innerWidth) this.dx *= -1;
+    if (this.y <= 0 || this.y + this.el.offsetHeight >= window.innerHeight) this.dy *= -1;
+
+    // Text collision
+    const textBox = {
+      x: textX,
+      y: textY,
+      width: text.offsetWidth,
+      height: text.offsetHeight
+    };
+
+    const iconBox = {
+      x: this.x,
+      y: this.y,
+      width: this.el.offsetWidth,
+      height: this.el.offsetHeight
+    };
+
+    if (isColliding(iconBox, textBox)) {
+      const overlapX = Math.min(iconBox.x + iconBox.width - textBox.x, textBox.x + textBox.width - iconBox.x);
+      const overlapY = Math.min(iconBox.y + iconBox.height - textBox.y, textBox.y + textBox.height - iconBox.y);
+
+      if (overlapX < overlapY) {
+        this.dx *= -1;
+        this.x += this.dx;
+      } else {
+        this.dy *= -1;
+        this.y += this.dy;
+      }
+    }
+
+    this.el.style.left = this.x + 'px';
+    this.el.style.top = this.y + 'px';
+  }
+}
+
+const icons = document.querySelectorAll('.weather-icon');
+const dvdIcons = [
+  new DVDIcon(icons[0], 2.5, 2),
+  new DVDIcon(icons[1], 2, 3),
+  new DVDIcon(icons[2], 3, 2.5),
+  new DVDIcon(icons[3], 2.8, 3)
+];
+
+function animateIcons() {
+  dvdIcons.forEach(icon => icon.move());
+  requestAnimationFrame(animateIcons);
+}
+
+animateIcons();
+
+window.addEventListener('resize', () => {
+  textX = Math.min(textX, window.innerWidth - text.offsetWidth);
+  textY = Math.min(textY, window.innerHeight - text.offsetHeight);
+});
+</script>
+
+</body>
+</html>
